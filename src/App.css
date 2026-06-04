@@ -1,0 +1,48 @@
+.app-layout {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.hero-container {
+  background-color: #1a1a1a;
+  border-radius: 12px;
+  padding: 3rem;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  border: 1px solid #333;
+}
+
+h1 {
+  font-size: 2.5rem;
+  color: #61dafb; /* Classic React Blue */
+  margin-bottom: 1rem;
+}
+
+p {
+  color: #aaa;
+  font-size: 1.2rem;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  background-color: rgba(76, 175, 80, 0.1);
+  color: #4caf50;
+  padding: 0.5rem 1rem;
+  border-radius: 50px;
+  margin-top: 1.5rem;
+  font-weight: bold;
+  font-size: 0.9rem;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.dot {
+  height: 8px;
+  width: 8px;
+  background-color: #4caf50;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+  box-shadow: 0 0 8px #4caf50;
+}
