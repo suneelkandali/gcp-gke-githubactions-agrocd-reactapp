@@ -43,7 +43,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: us-central1-docker.pkg.dev/gke-hello-world-498115/react-repo/gcp-gke-githubactions-agrocd-reactapp:v3.0.0
+          tags: us-central1-docker.pkg.dev/gke-hello-world-498115/react-repo/gcp-gke-githubactions-agrocd-reactapp:v4.0.0
           platforms: linux/amd64
           cache-from: type=gha # Uses GitHub Actions native cache to speed up npm install
           cache-to: type=gha,mode=max
