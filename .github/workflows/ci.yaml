@@ -10,7 +10,7 @@ env:
   PROJECT_ID: gke-hello-world-498115
   CLUSTER_NAME: gcp-gke-githubactions-agrocd-cluster        # <-- Replace with your actual GKE cluster name
   ZONE: us-central1                        # <-- Replace with your cluster's zone
-  DEPLOYMENT_NAME: gcp-gke-githubactions-agrocd-reactapp-deployment 
+  DEPLOYMENT_NAME: gcp-gke-githubactions-agrocd-reactapp-deployment
 
 jobs:
   build-and-deploy:
