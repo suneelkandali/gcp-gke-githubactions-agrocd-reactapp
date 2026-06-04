@@ -8,7 +8,7 @@ on:
 # Define cluster configuration variables for easy updates
 env:
   PROJECT_ID: gke-hello-world-498115
-  CLUSTER_NAME: gcp-gke-githubactions        # <-- Replace with your actual GKE cluster name
+  CLUSTER_NAME: gcp-gke-githubactions-agrocd-cluster        # <-- Replace with your actual GKE cluster name
   ZONE: us-central1-b                        # <-- Replace with your cluster's zone
   DEPLOYMENT_NAME: gcp-gke-githubactions-agrocd-reactapp-deployment 
 
