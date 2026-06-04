@@ -69,8 +69,8 @@ jobs:
 
       # 9. Force GKE to pull the new image slice and restart the pods
       - name: Deploy to GKE
-      run: |
-        kubectl apply -f deployment.yaml
+        run: |
+          kubectl apply -f deployment.yaml
           
       # 10. Optional: Track deployment status until it succeeds
       - name: Verify Deployment Status
