@@ -3,51 +3,58 @@ name: Build and Deploy React App to GKE
 on:
   push:
     branches:
-      - main  # Triggers the build whenever you push to the main branch
+      - main
+
+# Define cluster configuration variables for easy updates
+env:
+  PROJECT_ID: gke-hello-world-498115
+  CLUSTER_NAME: gcp-gke-githubactions        # <-- Replace with your actual GKE cluster name
+  ZONE: us-central1-b                        # <-- Replace with your cluster's zone
+  DEPLOYMENT_NAME: gcp-gke-githubactions-agrocd-reactapp-deployment 
 
 jobs:
-  build-and-push:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Clone your repository into the GitHub runner
+      # 1. Clone your repository
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Authenticate with Google Cloud using a Service Account Key
+      # 2. Authenticate to Google Cloud
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }} # Stored safely in GitHub Secrets
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      # 3. Set up the Google Cloud SDK CLI tools
+      # 3. Set up the Google Cloud SDK
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      # 4. Configure Docker to securely login to your Google Artifact Registry
+      # 4. Configure Docker for Google Artifact Registry
       - name: Configure Docker for GCP
         run: |
           gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
 
-      # 5. Set up QEMU (Ensures cross-platform building doesn't crash on Node/Go binaries)
+      # 5. Set up QEMU for emulation
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
-      # 6. Set up Docker Buildx (The advanced engine required for platform targeting)
+      # 6. Set up Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # 7. Build the image for Intel architecture and push it directly to GCP
+      # 7. Build the linux/amd64 image and push to Artifact Registry
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: us-central1-docker.pkg.dev/gke-hello-world-498115/react-repo/gcp-gke-githubactions-agrocd-reactapp:v4.0.0
+          tags: us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/react-repo/gcp-gke-githubactions-agrocd-reactapp:v1.0.0
           platforms: linux/amd64
-          cache-from: type=gha # Uses GitHub Actions native cache to speed up npm install
+          cache-from: type=gha
           cache-to: type=gha,mode=max
-      
+
       # ==========================================
       # NEW: GKE DEPLOYMENT STEPS
       # ==========================================
@@ -56,9 +63,9 @@ jobs:
       - name: Get GKE Credentials
         uses: google-github-actions/get-gke-credentials@v2
         with:
-          cluster_name: gcp-gke-githubactions-agrocd-cluster
-          location: us-central1
-          project_id: gke-hello-world-498115
+          cluster_name: ${{ env.CLUSTER_NAME }}
+          location: ${{ env.ZONE }}
+          project_id: ${{ env.PROJECT_ID }}
 
       # 9. Force GKE to pull the new image slice and restart the pods
       - name: Deploy rolling update to GKE
