@@ -68,9 +68,9 @@ jobs:
           project_id: ${{ env.PROJECT_ID }}
 
       # 9. Force GKE to pull the new image slice and restart the pods
-      - name: Deploy rolling update to GKE
-        run: |
-          kubectl rollout restart deployment/${{ env.DEPLOYMENT_NAME }}
+      - name: Deploy to GKE
+      run: |
+        kubectl apply -f deployment.yaml
           
       # 10. Optional: Track deployment status until it succeeds
       - name: Verify Deployment Status
