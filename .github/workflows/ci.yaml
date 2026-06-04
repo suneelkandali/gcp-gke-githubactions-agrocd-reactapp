@@ -50,7 +50,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/react-repo/gcp-gke-githubactions-agrocd-reactapp:v1.0.0
+          tags: us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/react-repo/gcp-gke-githubactions-agrocd-reactapp:v4.0.0
           platforms: linux/amd64
           cache-from: type=gha
           cache-to: type=gha,mode=max
