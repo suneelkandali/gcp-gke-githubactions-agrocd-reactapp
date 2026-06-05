@@ -1,33 +1,33 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: gcp-gke-githubactions-agrocd-reactapp-deployment
+  name: reactapp-gcp-gke-githubactions-cicd-deployment
   labels:
-    app: gcp-gke-githubactions-agrocd-reactapp
+    app: reactapp-gcp-gke-githubactions-cicd
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: gcp-gke-githubactions-agrocd-reactapp
+      app: reactapp-gcp-gke-githubactions-cicd
   template:
     metadata:
       labels:
-        app: gcp-gke-githubactions-agrocd-reactapp
+        app: reactapp-gcp-gke-githubactions-cicd
     spec:
       containers:
       - name: react-app
-        image: us-central1-docker.pkg.dev/gke-hello-world-498115/react-repo/gcp-gke-githubactions-agrocd-reactapp:v6.0.0
+        image: us-central1-docker.pkg.dev/gke-hello-world-498115/react-repo/reactapp-gcp-gke-githubactions-cicd:v1.0.0
         ports:
         - containerPort: 80
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: gcp-gke-githubactions-agrocd-reactapp-service
+  name: reactapp-gcp-gke-githubactions-cicd-service
 spec:
   type: LoadBalancer
   selector:
-    app: gcp-gke-githubactions-agrocd-reactapp
+    app: reactapp-gcp-gke-githubactions-cicd
   ports:
     - protocol: TCP
       port: 80

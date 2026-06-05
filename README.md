@@ -13,8 +13,12 @@ docker buildx build --platform linux/amd64 -t us-central1-docker.pkg.dev/gke-hel
 docker push us-central1-docker.pkg.dev/gke-hello-world-498115/react-repo/gcp-gke-githubactions-agrocd-reactapp:v1.0.0
 
 
-gcloud container clusters create-auto gcp-gke-githubactions-agrocd-cluster \
-    --region us-central1
+gcloud container clusters create gcp-gke-githubactions-argocd-cluster \
+    --zone us-central1-a \
+    --num-nodes=1 \
+    --machine-type=e2-medium \
+    --disk-size=30 \
+    --disk-type=pd-ssd
 
 ## For generating kubeconfig entry
 
