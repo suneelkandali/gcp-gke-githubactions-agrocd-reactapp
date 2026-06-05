@@ -93,6 +93,10 @@ jobs:
           location: ${{ env.GCP_ZONE }}
           credentials_json: '${{ secrets.GCP_SA_KEY }}'
 
+      - name: Apply Argo CD application manifest
+        run: |
+          kubectl apply -f agrocd-app.yaml
+
       - name: Login and sync Argo CD app
         env:
           ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
