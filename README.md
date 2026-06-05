@@ -28,6 +28,20 @@ You need the following installed on your computer:
 
 If you do not already have the required tools installed, follow these steps.
 
+### Verify installed tools
+
+Check that the required commands are already available before installing:
+
+```bash
+node --version
+npm --version
+docker version
+kubectl version --client
+gcloud version
+```
+
+If any command fails, install the missing tool using the instructions below.
+
 ### Install Node.js and npm
 
 Install Node.js and npm using the recommended installer for your platform from:
@@ -46,36 +60,15 @@ node --version
 npm --version
 ```
 
-### Install Google Cloud SDK
+### Install Docker
 
-1. Download and install the SDK for your platform from:
-   https://cloud.google.com/sdk/docs/install
-2. Initialize the SDK:
+Download Docker Desktop for your platform from:
+https://www.docker.com/get-started
 
-```bash
-gcloud init
-```
-
-3. Log in to your Google account:
+After installation, verify Docker is running:
 
 ```bash
-gcloud auth login
-```
-
-### Create a Google Cloud project
-
-If you do not already have a project, create one now:
-
-```bash
-gcloud projects create gke-hello-world-498115 --name="GKE Hello World"
-```
-
-Enable billing and link it to your project using the Cloud Console if needed.
-
-Set the active project:
-
-```bash
-gcloud config set project gke-hello-world-498115
+docker version
 ```
 
 ### Install kubectl
@@ -94,19 +87,24 @@ Verify installation:
 ```bash
 kubectl version --client
 ```
+---
 
-### Install Docker
+### Install Google Cloud SDK and Confirm the SDK is working
 
-Download Docker Desktop for your platform from:
-https://www.docker.com/get-started
-
-After installation, verify Docker is running:
+1. Download and install the SDK for your platform from:
+   https://cloud.google.com/sdk/docs/install
+2. Initialize the SDK:
 
 ```bash
-docker version
+gcloud init
 ```
 
-### Confirm the SDK is working
+3. Log in to your Google account:
+
+```bash
+gcloud auth login
+```
+4. Confirm SDK is working
 
 ```bash
 gcloud auth list
@@ -114,7 +112,76 @@ gcloud auth list
 gcloud config list
 ```
 
----
+### Create a Google Cloud project
+
+If you do not already have a project, create one now:
+
+```bash
+gcloud projects create gke-githubactions-argocd-12345 --name="GKE GitHubActions ArgoCD"
+```
+
+Enable billing and link it to your project using the Cloud Console if needed.
+
+Set the active project:
+
+```bash
+gcloud config set project gke-githubactions-argocd-12345
+```
+
+### Create a GCP service account and key
+
+Create a service account for GitHub Actions deployment:
+
+```bash
+gcloud iam service-accounts create github-actions-deployer \
+  --description="GitHub Actions deployer account" \
+  --display-name="GitHub Actions Deployer"
+```
+
+Grant the service account the required permissions:
+
+```bash
+gcloud projects add-iam-policy-binding gke-githubactions-argocd-12345 \
+  --member="serviceAccount:github-actions-deployer@gke-githubactions-argocd-12345.iam.gserviceaccount.com" \
+  --role="roles/container.admin"
+
+gcloud projects add-iam-policy-binding gke-githubactions-argocd-12345 \
+  --member="serviceAccount:github-actions-deployer@gke-githubactions-argocd-12345.iam.gserviceaccount.com" \
+  --role="roles/artifactregistry.writer"
+
+gcloud projects add-iam-policy-binding gke-githubactions-argocd-12345 \
+  --member="serviceAccount:github-actions-deployer@gke-githubactions-argocd-12345.iam.gserviceaccount.com" \
+  --role="roles/iam.serviceAccountUser"
+```
+
+If you need to use Artifact Registry with storage operations, also grant:
+
+```bash
+gcloud projects add-iam-policy-binding gke-githubactions-argocd-12345 \
+  --member="serviceAccount:github-actions-deployer@gke-githubactions-argocd-12345.iam.gserviceaccount.com" \
+  --role="roles/storage.admin"
+```
+
+Create a new JSON key for the service account and save it locally:
+
+```bash
+gcloud iam service-accounts keys create ./gcp-sa-key.json \
+  --iam-account=github-actions-deployer@gke-githubactions-argocd-12345.iam.gserviceaccount.com
+```
+
+Add the contents of `gcp-sa-key.json` to the GitHub secret `GCP_SA_KEY`.
+
+Enable the required APIs:
+
+```bash
+gcloud services enable container.googleapis.com artifactregistry.googleapis.com
+```
+
+gcloud services enable: This is the core Google Cloud CLI command used to activate APIs within your currently selected project.
+
+container.googleapis.com: This is the internal name for the Google Kubernetes Engine (GKE) API. Enabling this allows you to create, manage, and scale Kubernetes clusters.
+
+artifactregistry.googleapis.com: This is the internal name for Artifact Registry. Enabling this allows you to create secure, private repositories to store and manage your Docker container images, Maven/npm packages, or Helm charts.
 
 ## 2. Create your React application and push to GitHub
 
@@ -164,12 +231,12 @@ gcloud container clusters create gcp-gke-githubactions-argocd-cluster \
   --disk-type=pd-ssd
 ```
 
-Then connect `kubectl` to the cluster:
+Then connect `kubectl` to the cluster, this adds kubeconfig entry on your local
 
 ```bash
 gcloud container clusters get-credentials gcp-gke-githubactions-argocd-cluster \
   --zone us-central1-a \
-  --project gke-hello-world-498115
+  --project gke-githubactions-argocd-12345
 
 kubectl config current-context
 ```
@@ -277,6 +344,36 @@ The workflow in `.github/workflows/ci.yaml` will:
 6. log in to Argo CD
 7. sync the application
 8. wait for the application to become healthy
+
+---
+
+## 6.1 Zero downtime updates
+
+This deployment is configured to update pods without taking the app offline by using a rolling update strategy:
+
+- `replicas: 2` keeps at least one pod available while a new pod starts.
+- `strategy.rollingUpdate.maxSurge: 1` allows one extra pod to be created temporarily.
+- `strategy.rollingUpdate.maxUnavailable: 0` ensures no pod is removed before a replacement is ready.
+- A readiness probe verifies each new pod is ready before traffic routes to it.
+
+When a new image version is deployed, Kubernetes will:
+
+1. start a new pod with the updated image
+2. wait until the readiness probe passes
+3. terminate one old pod only after the new pod is ready
+4. repeat until all pods are updated
+
+You can watch the rollout progress with:
+
+```bash
+kubectl rollout status deployment/reactapp-gcp-gke-githubactions-cicd-deployment
+```
+
+If you need to roll back after a failed deployment:
+
+```bash
+kubectl rollout undo deployment/reactapp-gcp-gke-githubactions-cicd-deployment
+```
 
 ---
 
