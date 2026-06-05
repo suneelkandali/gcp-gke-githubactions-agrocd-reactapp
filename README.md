@@ -304,6 +304,7 @@ In GitHub, go to your repository `Settings` > `Secrets and variables` > `Actions
 Create these repository secrets:
 
 - `GCP_SA_KEY` &mdash; paste the JSON content of your GCP service account key.
+- `ARGOCD_SERVER` &mdash; paste the Argo CD External Server IP.
 - `ARGOCD_PASSWORD` &mdash; paste the Argo CD admin password.
 
 ![GitHub Secrets configuration](screenshots/github-secrets.png)
