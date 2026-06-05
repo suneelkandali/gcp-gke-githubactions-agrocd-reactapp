@@ -58,14 +58,14 @@ jobs:
         run: |
           IMAGE=${{ env.IMAGE }}
           python - <<'PY'
-            from pathlib import Path
-            import re
-            path = Path('${{ env.DEPLOYMENT_MANIFEST }}')
-            text = path.read_text()
-            pattern = r'^(\s*image:\s*).*$'
-            new_text = re.sub(pattern, r'\1' + '${{ env.IMAGE }}', text, flags=re.MULTILINE)
-            path.write_text(new_text)
-          PY
+from pathlib import Path
+import re
+path = Path('${{ env.DEPLOYMENT_MANIFEST }}')
+text = path.read_text()
+pattern = r'^(\s*image:\s*).*$'
+new_text = re.sub(pattern, r'\1' + '${{ env.IMAGE }}', text, flags=re.MULTILINE)
+path.write_text(new_text)
+PY
         env:
           IMAGE: ${{ env.IMAGE }}
 
