@@ -68,7 +68,7 @@ jobs:
         uses: google-github-actions/get-gke-credentials@v2
         with:
           cluster_name: ${{ env.CLUSTER_NAME }}
-          location: ${{ env.LOCATION }}
+          location: ${{ env.ZONE }}
           project_id: ${{ env.PROJECT_ID }}
 
       # 9. Apply manifests and update the image dynamically
