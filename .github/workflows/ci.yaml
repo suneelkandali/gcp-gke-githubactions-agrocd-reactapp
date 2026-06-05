@@ -57,21 +57,11 @@ jobs:
 
       - name: Update deployment manifest image tag
         run: |
-          IMAGE_TAG="${{ env.REGISTRY_URL }}:${{ github.sha }}"
-          python3 - <<'PY'
-from pathlib import Path
-image_tag = "${IMAGE_TAG}"
-path = Path('deployment.yaml')
-text = path.read_text()
-lines = []
-for line in text.splitlines():
-    if line.strip().startswith('image:'):
-        indent = line[:line.index('image:')]
-        lines.append(f"{indent}image: {image_tag}")
-    else:
-        lines.append(line)
-path.write_text('\n'.join(lines) + '\n')
-PY
+          python3 -c 'from pathlib import Path, re
+            path = Path("deployment.yaml")
+            text = path.read_text()
+            new_text = re.sub(r"^(\\s*image:).*$", lambda m: f"{m.group(1)} ${{ env.REGISTRY_URL }}:${{ github.sha }}", text, flags=re.MULTILINE)
+            path.write_text(new_text)'
 
       - name: Commit deployment manifest update
         run: |
