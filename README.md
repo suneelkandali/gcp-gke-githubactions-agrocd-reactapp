@@ -22,9 +22,104 @@ You need the following installed on your computer:
 - access to your Google Cloud project
 - a GitHub repository for this project
 
+If you do not already have the required tools installed, follow these steps.
+
+### Install Google Cloud SDK
+
+1. Download and install the SDK for your platform from:
+   https://cloud.google.com/sdk/docs/install
+2. Initialize the SDK:
+
+```bash
+gcloud init
+```
+
+3. Log in to your Google account:
+
+```bash
+gcloud auth login
+```
+
+4. Set the active project:
+
+```bash
+gcloud config set project gke-hello-world-498115
+```
+
+### Install kubectl
+
+Follow the instructions at:
+https://kubernetes.io/docs/tasks/tools/
+
+For macOS with Homebrew:
+
+```bash
+brew install kubectl
+```
+
+Verify installation:
+
+```bash
+kubectl version --client
+```
+
+### Install Docker
+
+Download Docker Desktop for your platform from:
+https://www.docker.com/get-started
+
+After installation, verify Docker is running:
+
+```bash
+docker version
+```
+
+### Confirm the SDK is working
+
+```bash
+gcloud auth list
+
+gcloud config list
+```
+
 ---
 
-## 2. Create the GKE cluster
+## 2. Create your React application and push to GitHub
+
+If you do not already have a React app in this repository, create one with Vite:
+
+```bash
+npm create vite@latest . -- --template react
+npm install
+```
+
+If the repository is not yet a Git repo, initialize it:
+
+```bash
+git init
+git add .
+git commit -m "Initial React app"
+```
+
+Add your GitHub repository as the remote and push:
+
+```bash
+git remote add origin https://github.com/<your-username>/<your-repo>.git
+git branch -M main
+git push -u origin main
+```
+
+If your repository already exists locally, simply commit and push your changes:
+
+```bash
+git add .
+git commit -m "Add React app"
+git push origin main
+```
+
+---
+
+## 3. Create the GKE cluster
 
 Run these commands in your terminal:
 
@@ -46,6 +141,9 @@ gcloud container clusters get-credentials gcp-gke-githubactions-argocd-cluster \
 
 kubectl config current-context
 ```
+
+![GKE cluster created and kubectl configured](screenshots/gke-cluster-setup.png)
+*Screenshot: GKE cluster creation and kubectl context setup.*
 
 ---
 
@@ -82,6 +180,9 @@ Get the default admin password:
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
 ```
 
+![Argo CD external IP and login information](screenshots/argocd-setup.png)
+*Screenshot: Argo CD LoadBalancer external IP and initial admin login.*
+
 Open the Argo CD UI using the external IP and log in with:
 - Username: `admin`
 - Password: the value from the previous command
@@ -98,6 +199,9 @@ Create these repository secrets:
 
 - `GCP_SA_KEY` &mdash; paste the JSON content of your GCP service account key.
 - `ARGOCD_PASSWORD` &mdash; paste the Argo CD admin password.
+
+![GitHub Secrets configuration](screenshots/github-secrets.png)
+*Screenshot: GitHub Actions secrets dashboard with `GCP_SA_KEY` and `ARGOCD_PASSWORD` set.*
 
 ---
 
@@ -155,6 +259,9 @@ git push origin main
 ```
 
 Then go to GitHub Actions and watch the workflow run.
+
+![GitHub Actions workflow run](screenshots/github-actions-workflow.png)
+*Screenshot: GitHub Actions workflow run showing the build and deploy steps.*
 
 ---
 
