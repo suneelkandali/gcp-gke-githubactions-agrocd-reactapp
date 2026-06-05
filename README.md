@@ -265,7 +265,58 @@ Then go to GitHub Actions and watch the workflow run.
 
 ---
 
-## 8. Troubleshooting
+## 8. Validate the deployment
+
+After the workflow completes, confirm the application is deployed and healthy.
+
+### 8.1 Check Argo CD application status
+
+Open the Argo CD UI and verify the app status is `Healthy` and `Synced`.
+
+Or run:
+
+```bash
+argocd app get reactapp-gcp-gke-githubactions-cicd
+```
+
+Look for:
+- `Sync Status: Synced`
+- `Health Status: Healthy`
+
+### 8.2 Check the Kubernetes deployment
+
+Verify that the deployment is running in the target namespace:
+
+```bash
+kubectl get pods -n default
+kubectl get svc -n default
+```
+
+### 8.3 Test the app URL in your browser
+
+If your app is exposed via a Kubernetes service with an external IP or ingress, open that URL in your browser.
+
+For example, if your service is exposed on port 80 and the external IP is `34.30.15.58`, open:
+
+```text
+http://34.30.15.58
+```
+
+If the app is not exposed externally, use port-forwarding to test it locally:
+
+```bash
+kubectl port-forward svc/<service-name> 8080:80 -n default
+```
+
+Then open:
+
+```text
+http://localhost:8080
+```
+
+---
+
+## 9. Troubleshooting
 
 ### App path is wrong
 
