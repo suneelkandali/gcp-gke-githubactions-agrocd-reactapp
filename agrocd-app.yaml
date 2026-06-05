@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: my-react-app
+  namespace: argocd
+  # Finalizers ensure resources are cleanly deleted if the app is removed
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/suneelkandali/gcp-gke-githubactions-agrocd-reactapp.git'
+    targetRevision: main
+    path: k8s  # Path to your manifests inside the repo
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true      # Automatically deletes resources removed from Git
+      selfHeal: true   # Overwrites manual cluster changes to match Git
+    syncOptions:
+      - CreateNamespace=true # Creates target namespace if it doesn't exist
