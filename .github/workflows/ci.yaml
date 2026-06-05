@@ -57,11 +57,19 @@ jobs:
 
       - name: Update deployment manifest image tag
         run: |
-          python3 -c 'from pathlib import Path, re
-            path = Path("deployment.yaml")
-            text = path.read_text()
-            new_text = re.sub(r"^(\\s*image:).*$", lambda m: f"{m.group(1)} ${{ env.REGISTRY_URL }}:${{ github.sha }}", text, flags=re.MULTILINE)
-            path.write_text(new_text)'
+          python3 <<'PY'
+          from pathlib import Path, re
+
+          path = Path('deployment.yaml')
+          text = path.read_text()
+          new_text = re.sub(
+              r'^(\s*image:).*$',
+              lambda m: f"{m.group(1)} ${{ env.REGISTRY_URL }}:${{ github.sha }}",
+              text,
+              flags=re.MULTILINE,
+          )
+          path.write_text(new_text)
+          PY
 
       - name: Commit deployment manifest update
         run: |
