@@ -11,7 +11,7 @@ on:
 env:
   PROJECT_ID: gke-hello-world-498115
   REGISTRY_URL: us-central1-docker.pkg.dev/gke-hello-world-498115/react-repo/gcp-gke-githubactions-agrocd-reactapp
-  ARGOCD_SERVER: https://34.30.15.58:443
+  ARGOCD_SERVER: 34.30.15.58:443
   ARGOCD_USERNAME: admin
   ARGOCD_PASSWORD: cfPflMV-vAEZbZ01
   ARGOCD_APP_NAME: reactapp-gcp-gke-githubactions-cicd
