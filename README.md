@@ -4,12 +4,15 @@ This repository demonstrates how to build a React app, publish a Docker image to
 
 ## What you will do
 
-1. Create a Google Kubernetes Engine (GKE) cluster.
-2. Install Argo CD.
-3. Create and store GitHub secrets.
-4. Configure the Argo CD application.
-5. Run the deployment from GitHub Actions.
-6. Clean up resources when finished.
+1. Install local tools and authenticate with Google Cloud.
+2. Create a React application and push it to GitHub.
+3. Create a GKE cluster and connect `kubectl`.
+4. Install and configure Argo CD.
+5. Create GitHub Actions secrets for deployment.
+6. Configure the Argo CD application path.
+7. Deploy the app with GitHub Actions.
+8. Validate the deployment and test the app URL.
+9. Clean up resources when finished.
 
 ---
 
