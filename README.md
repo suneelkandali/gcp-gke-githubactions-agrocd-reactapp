@@ -22,10 +22,29 @@ You need the following installed on your computer:
 - `gcloud`
 - `kubectl`
 - `docker`
+- `node` and `npm`
 - access to your Google Cloud project
 - a GitHub repository for this project
 
 If you do not already have the required tools installed, follow these steps.
+
+### Install Node.js and npm
+
+Install Node.js and npm using the recommended installer for your platform from:
+https://nodejs.org/
+
+For macOS with Homebrew:
+
+```bash
+brew install node
+```
+
+Verify installation:
+
+```bash
+node --version
+npm --version
+```
 
 ### Install Google Cloud SDK
 
@@ -43,7 +62,17 @@ gcloud init
 gcloud auth login
 ```
 
-4. Set the active project:
+### Create a Google Cloud project
+
+If you do not already have a project, create one now:
+
+```bash
+gcloud projects create gke-hello-world-498115 --name="GKE Hello World"
+```
+
+Enable billing and link it to your project using the Cloud Console if needed.
+
+Set the active project:
 
 ```bash
 gcloud config set project gke-hello-world-498115
