@@ -1,109 +1,185 @@
-# gcp-gke-githubactions-agrocd-reactapp
+# GCP + GKE + GitHub Actions + Argo CD React App
 
-## Build Docker image
+This repository demonstrates how to build a React app, publish a Docker image to Google Artifact Registry, and deploy it to GKE through Argo CD using GitHub Actions.
 
+## What you will do
 
+1. Create a Google Kubernetes Engine (GKE) cluster.
+2. Install Argo CD.
+3. Create and store GitHub secrets.
+4. Configure the Argo CD application.
+5. Run the deployment from GitHub Actions.
+6. Clean up resources when finished.
 
-docker build --no-cache -t gcp-gke-githubactions-agrocd-reactapp:v1.0.0 .
+---
 
-docker build --platform linux/amd64 -t us-central1-docker.pkg.dev/gke-hello-world-498115/react-repo/gcp-gke-githubactions-agrocd-reactapp:v1.0.0 .
+## 1. Prerequisites
 
-docker buildx build --platform linux/amd64 -t us-central1-docker.pkg.dev/gke-hello-world-498115/react-repo/gcp-gke-githubactions-agrocd-reactapp:v1.0.0 --push .
+You need the following installed on your computer:
+- `gcloud`
+- `kubectl`
+- `docker`
+- access to your Google Cloud project
+- a GitHub repository for this project
 
-docker push us-central1-docker.pkg.dev/gke-hello-world-498115/react-repo/gcp-gke-githubactions-agrocd-reactapp:v1.0.0
+---
 
+## 2. Create the GKE cluster
 
+Run these commands in your terminal:
+
+```bash
 gcloud container clusters create gcp-gke-githubactions-argocd-cluster \
-    --zone us-central1-a \
-    --num-nodes=1 \
-    --machine-type=e2-medium \
-    --disk-size=30 \
-    --disk-type=pd-ssd
+  --zone us-central1-a \
+  --num-nodes=1 \
+  --machine-type=e2-medium \
+  --disk-size=30 \
+  --disk-type=pd-ssd
+```
 
-## For generating kubeconfig entry
+Then connect `kubectl` to the cluster:
 
+```bash
 gcloud container clusters get-credentials gcp-gke-githubactions-argocd-cluster \
-    --zone us-central1-a \
-    --project gke-hello-world-498115
+  --zone us-central1-a \
+  --project gke-hello-world-498115
 
 kubectl config current-context
+```
 
-### Delete the cluster after the test is complete
+---
 
+## 3. Install Argo CD
 
-gcloud container clusters delete gcp-gke-githubactions-argocd-cluster --zone us-central1-a
+Install Argo CD into the `argocd` namespace:
 
-
-
-
-
-
-
-### Steps for build and deployment using GitHub Actions
-
-Step 1: Create a Service Account in GCP
-If you don't already have a Service Account with the right permissions, you can create one quickly:
-
-Open the Google Cloud Console.
-
-In the left navigation menu, go to IAM & Admin > Service Accounts.
-
-Click the + CREATE SERVICE ACCOUNT button at the top.
-
-Fill in the details:
-
-Service account name: github-actions-gke-deployer
-
-Click Create and Continue.
-
-Under Grant this service account access to project, click the Select a role dropdown and add these permissions:
-
-Artifact Registry Writer (Required to push the Docker image)
-
-(Optional) Kubernetes Engine Developer (If you want GitHub Actions to deploy directly to GKE later instead of relying entirely on ArgoCD manual syncs).
-
-Click Continue and then Done.
-
-Step 2: Generate the JSON Key File
-On the Service Accounts page, find the account you just created in the list.
-
-Click the three vertical dots (Actions) under the Actions column on the far right of that row, and select Manage keys.
-
-Click ADD KEY > Create new key.
-
-Select JSON as the key type and click Create.
-
-A .json file will automatically download to your computer.
-
-Open this file with any text editor (like VS Code, TextEdit, or Notepad) and copy the entire text inside it. It will look like a giant block of bracketed configuration data.
-
-Step 3: Save the Key into GitHub Secrets
-Open your web browser, navigate to GitHub, and open your specific project repository.
-
-Click on the Settings tab located in the top menu bar of your repository.
-
-In the left-hand sidebar, scroll down to the Security section and click on Secrets and variables > Actions.
-
-Click the green New repository secret button in the upper right.
-
-Configure the secret fields exactly like this:
-
-Name: GCP_SA_KEY (Must be exactly uppercase to match your workflow file)
-
-Secret: Paste the entire block of JSON text you copied from your downloaded file in Step 2.
-
-Click Add secret.
-
-### AgroCD steps
-
+```bash
 kubectl create namespace argocd
-
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+```
 
+Wait for Argo CD pods to start:
+
+```bash
 kubectl get pods -n argocd
+```
 
-kubectl port-forward svc/argocd-server -n argocd 8080:443
+Expose the Argo CD server with a LoadBalancer so it is reachable from GitHub Actions:
 
-kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
-
+```bash
 kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
+```
+
+Get the external IP for Argo CD:
+
+```bash
+kubectl get svc -n argocd argocd-server
+```
+
+Get the default admin password:
+
+```bash
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+```
+
+Open the Argo CD UI using the external IP and log in with:
+- Username: `admin`
+- Password: the value from the previous command
+
+---
+
+## 4. Create GitHub Secrets
+
+Store sensitive values in GitHub instead of hardcoding them in the workflow.
+
+In GitHub, go to your repository `Settings` > `Secrets and variables` > `Actions`.
+
+Create these repository secrets:
+
+- `GCP_SA_KEY` &mdash; paste the JSON content of your GCP service account key.
+- `ARGOCD_PASSWORD` &mdash; paste the Argo CD admin password.
+
+---
+
+## 5. Configure the Argo CD application
+
+Open `agrocd-app.yaml` and make sure the `path` matches where your Kubernetes manifest lives.
+
+If `deployment.yaml` is in the repository root, use:
+
+```yaml
+spec:
+  source:
+    path: .
+```
+
+If you move `deployment.yaml` into a folder named `k8s`, use:
+
+```yaml
+spec:
+  source:
+    path: k8s
+```
+
+Apply or update the Argo CD Application:
+
+```bash
+kubectl apply -f agrocd-app.yaml
+```
+
+---
+
+## 6. How GitHub Actions works
+
+The workflow in `.github/workflows/ci.yaml` will:
+
+1. check out your repository
+2. authenticate to Google Cloud using `GCP_SA_KEY`
+3. build and push a Docker image to Artifact Registry
+4. update the deployment manifest with the new image tag
+5. commit the updated manifest back to GitHub
+6. log in to Argo CD
+7. sync the application
+8. wait for the application to become healthy
+
+---
+
+## 7. Run the deployment
+
+Push your changes to the `main` branch:
+
+```bash
+git add .
+git commit -m "Prepare deployment"
+git push origin main
+```
+
+Then go to GitHub Actions and watch the workflow run.
+
+---
+
+## 8. Troubleshooting
+
+### App path is wrong
+
+If Argo CD shows an error like `app path does not exist`, set `path` in `agrocd-app.yaml` to the correct location.
+
+### `Object 'Kind' is missing`
+
+This means Argo CD tried to parse a file such as `package.json` as a Kubernetes manifest. Only include manifest files in the Argo CD app path.
+
+### Permission denied on login
+
+Verify that `ARGOCD_PASSWORD` in GitHub Secrets matches the current Argo CD admin password.
+
+---
+
+## 9. Clean up resources
+
+When you are done, delete the GKE cluster:
+
+```bash
+gcloud container clusters delete gcp-gke-githubactions-argocd-cluster --zone us-central1-a
+```
+
+Remove any unnecessary service accounts or secrets from GitHub.
