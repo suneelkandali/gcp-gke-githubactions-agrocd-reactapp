@@ -13,7 +13,7 @@ env:
   REGISTRY_URL: us-central1-docker.pkg.dev/gke-hello-world-498115/react-repo/gcp-gke-githubactions-agrocd-reactapp
   ARGOCD_SERVER: 34.30.15.58
   ARGOCD_USERNAME: admin
-  ARGOCD_PASSWORD: cfPflMV-vAEZbZ01
+  ARGOCD_PASSWORD: ${{ secrets.ARGOCD_PASSWORD }}
   ARGOCD_APP_NAME: reactapp-gcp-gke-githubactions-cicd
   ARGOCD_NAMESPACE: argocd
 
