@@ -5,13 +5,12 @@ on:
     branches:
       - main
 
+# Define cluster configuration variables for easy updates
 env:
   PROJECT_ID: gke-hello-world-498115
   CLUSTER_NAME: gcp-gke-githubactions-argocd-cluster        # <-- Replace with your actual GKE cluster name
   ZONE: us-central1-a                        # <-- Replace with your cluster's zone
   DEPLOYMENT_NAME: reactapp-gcp-gke-githubactions-cicd-deployment
-  CONTAINER_NAME: react-app # <-- Make sure this matches the 'name' field under 'containers' in your deployment.yaml
-  REGISTRY_URL: us-central1-docker.pkg.dev/gke-hello-world-498115/react-repo/gcp-gke-githubactions-agrocd-reactapp
 
 jobs:
   build-and-deploy:
@@ -45,22 +44,19 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # 7. Build and push Docker image using GitHub SHA as tag
+      # 7. Build the linux/amd64 image and push to Artifact Registry
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          # MODIFIED: Uses the unique commit SHA as the image tag, alongside 'latest'
-          tags: |
-            ${{ env.REGISTRY_URL }}:${{ github.sha }}
-            ${{ env.REGISTRY_URL }}:latest
+          tags: us-central1-docker.pkg.dev/gke-hello-world-498115/react-repo/reactapp-gcp-gke-githubactions-cicd:v2.0.0
           platforms: linux/amd64
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       # ==========================================
-      # GKE DEPLOYMENT STEPS
+      # NEW: GKE DEPLOYMENT STEPS
       # ==========================================
 
       # 8. Authenticate with the GKE Cluster
@@ -71,17 +67,12 @@ jobs:
           location: ${{ env.ZONE }}
           project_id: ${{ env.PROJECT_ID }}
 
-      # 9. Apply manifests and update the image dynamically
+      # 9. Force GKE to pull the new image slice and restart the pods
       - name: Deploy to GKE
         run: |
-          # Apply your base configuration (Services, Ingress, base Deployment)
           kubectl apply -f deployment.yaml
           
-          # MODIFIED: Explicitly tell Kubernetes to use the newly built image SHA. 
-          # This forces a rolling update even if deployment.yaml hasn't changed.
-          kubectl set image deployment/${{ env.DEPLOYMENT_NAME }} ${{ env.CONTAINER_NAME }}=\${{ env.REGISTRY_URL }}:${{ github.sha }}
-          
-      # 10. Track deployment status until it succeeds
+      # 10. Optional: Track deployment status until it succeeds
       - name: Verify Deployment Status
         run: |
           kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} --timeout=2m
