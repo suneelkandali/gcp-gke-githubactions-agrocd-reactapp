@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: react-app
-        image: us-central1-docker.pkg.dev/gke-hello-world-498115/react-repo/gcp-gke-githubactions-agrocd-reactapp:d2906734f31f57981fb3e3405493ac51101fb3f2
+        image: us-central1-docker.pkg.dev/gke-hello-world-498115/react-repo/gcp-gke-githubactions-agrocd-reactapp:3edc45dd7dd162ccf35d09c0b25dc9bebf2abb15
         ports:
         - containerPort: 80
 ---
