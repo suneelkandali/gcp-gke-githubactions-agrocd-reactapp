@@ -1,4 +1,4 @@
-# GCP + GKE + GitHub Actions + Argo CD React App
+# React App deployment to Google Cloud - Kubernetes Environment with CI using GitHub Actions and CD using ArgoCD
 
 This repository demonstrates how to build a React app, publish a Docker image to Google Artifact Registry, and deploy it to GKE through Argo CD using GitHub Actions.
 
