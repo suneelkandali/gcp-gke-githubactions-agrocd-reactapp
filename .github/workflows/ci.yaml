@@ -1,0 +1,101 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  GCP_PROJECT: gke-githubactions-argocd-12345
+  GCP_REGION: us-central1
+  GCP_ZONE: us-central1-a
+  CLUSTER_NAME: gcp-gke-githubactions-argocd-cluster
+  IMAGE_REPOSITORY: react-repo
+  IMAGE_NAME: gcp-gke-githubactions-agrocd-reactapp
+  DEPLOYMENT_MANIFEST: k8s/deployment.yaml
+  ARGOCD_APP_NAME: reactapp-gcp-gke-githubactions-cicd
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build React app
+        run: npm run build
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
+
+      - name: Build and push Docker image
+        id: build-image
+        run: |
+          IMAGE=us-central1-docker.pkg.dev/${GCP_PROJECT}/${IMAGE_REPOSITORY}/${IMAGE_NAME}:${GITHUB_SHA}
+          echo "IMAGE=${IMAGE}" >> $GITHUB_ENV
+          docker build -t "$IMAGE" .
+          docker push "$IMAGE"
+
+      - name: Update deployment manifest image
+        run: |
+          IMAGE=${{ env.IMAGE }}
+          python - <<'PY'
+from pathlib import Path
+import re
+path = Path('${{ env.DEPLOYMENT_MANIFEST }}')
+text = path.read_text()
+pattern = r'^(\s*image:\s*).*$'
+new_text = re.sub(pattern, r'\1' + '${{ env.IMAGE }}', text, flags=re.MULTILINE)
+path.write_text(new_text)
+PY
+        env:
+          IMAGE: ${{ env.IMAGE }}
+
+      - name: Commit deployment manifest update
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add ${{ env.DEPLOYMENT_MANIFEST }}
+          git diff --cached --quiet || (
+            git commit -m "ci: update deployment image to ${{ env.IMAGE }}" && git push origin HEAD:main
+          )
+
+      - name: Install Argo CD CLI
+        run: |
+          curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+          chmod +x argocd
+          sudo mv argocd /usr/local/bin/argocd
+
+      - name: Get GKE credentials
+        uses: google-github-actions/get-gke-credentials@v1
+        with:
+          cluster_name: ${{ env.CLUSTER_NAME }}
+          location: ${{ env.GCP_ZONE }}
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      - name: Login and sync Argo CD app
+        env:
+          ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
+          ARGOCD_PASSWORD: ${{ secrets.ARGOCD_PASSWORD }}
+        run: |
+          argocd login "$ARGOCD_SERVER" --username admin --password "$ARGOCD_PASSWORD" --insecure
+          argocd app sync ${{ env.ARGOCD_APP_NAME }}
+          argocd app wait ${{ env.ARGOCD_APP_NAME }} --health --timeout 300
