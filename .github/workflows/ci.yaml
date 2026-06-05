@@ -93,14 +93,14 @@ jobs:
           curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
           chmod +x /usr/local/bin/argocd
 
-      - name: Login to Argo CD
-        run: |
-          argocd login ${ARGOCD_SERVER} --username ${ARGOCD_USERNAME} --password ${ARGOCD_PASSWORD} --insecure --grpc-web
+      # - name: Login to Argo CD
+      #   run: |
+      #     argocd login ${ARGOCD_SERVER} --username ${ARGOCD_USERNAME} --password ${ARGOCD_PASSWORD} --insecure --grpc-web
 
-      - name: Sync Argo CD application
-        run: |
-          argocd app sync ${ARGOCD_APP_NAME} --grpc-web
+      # - name: Sync Argo CD application
+      #   run: |
+      #     argocd app sync ${ARGOCD_APP_NAME} --grpc-web
 
-      - name: Wait for Argo CD application to become healthy
-        run: |
-          argocd app wait ${ARGOCD_APP_NAME} --health --timeout 180s --grpc-web
+      # - name: Wait for Argo CD application to become healthy
+      #   run: |
+      #     argocd app wait ${ARGOCD_APP_NAME} --health --timeout 180s --grpc-web
