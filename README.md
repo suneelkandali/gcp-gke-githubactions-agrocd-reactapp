@@ -279,6 +279,7 @@ Get the default admin password:
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
 ```
 
+
 ![Argo CD external IP and login information](screenshots/argocd-setup.png)
 *Screenshot: Argo CD LoadBalancer external IP and initial admin login.*
 
