@@ -50,7 +50,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: us-central1-docker.pkg.dev/gke-hello-world-498115/react-repo/reactapp-gcp-gke-githubactions-cicd:v1.0.0
+          tags: us-central1-docker.pkg.dev/gke-hello-world-498115/react-repo/reactapp-gcp-gke-githubactions-cicd:v2.0.0
           platforms: linux/amd64
           cache-from: type=gha
           cache-to: type=gha,mode=max
