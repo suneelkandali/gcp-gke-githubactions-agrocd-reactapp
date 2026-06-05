@@ -65,7 +65,7 @@ jobs:
           python3 <<'PY'
           from pathlib import Path, re
 
-          path = Path('deployment.yaml')
+          path = Path('k8s/deployment.yaml')
           text = path.read_text()
           new_text = re.sub(
               r'^(\s*image:).*$',
