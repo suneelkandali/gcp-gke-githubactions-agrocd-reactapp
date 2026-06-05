@@ -22,17 +22,21 @@ gcloud container clusters create gcp-gke-githubactions-argocd-cluster \
 
 ## For generating kubeconfig entry
 
-gcloud container clusters get-credentials gcp-gke-githubactions-agrocd-cluster \
-    --region us-central1 \
+gcloud container clusters get-credentials gcp-gke-githubactions-argocd-cluster \
+    --zone us-central1-a \
     --project gke-hello-world-498115
 
 kubectl config current-context
 
-gcloud container clusters delete gcp-gke-githubactions-agrocd-cluster --region us-central1
+### Delete the cluster after the test is complete
 
-Delete the cluster after the test is complete
 
-gcloud container clusters delete gcp-gke-githubactions-agrocd-cluster --region us-central1
+gcloud container clusters delete gcp-gke-githubactions-argocd-cluster --zone us-central1-a
+
+
+
+
+
 
 
 ### Steps for build and deployment using GitHub Actions
@@ -90,3 +94,16 @@ Secret: Paste the entire block of JSON text you copied from your downloaded file
 
 Click Add secret.
 
+### AgroCD steps
+
+kubectl create namespace argocd
+
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+kubectl get pods -n argocd
+
+kubectl port-forward svc/argocd-server -n argocd 8080:443
+
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+
+kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'

@@ -11,9 +11,9 @@ on:
 env:
   PROJECT_ID: gke-hello-world-498115
   REGISTRY_URL: us-central1-docker.pkg.dev/gke-hello-world-498115/react-repo/gcp-gke-githubactions-agrocd-reactapp
-  ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
-  ARGOCD_USERNAME: ${{ secrets.ARGOCD_USERNAME }}
-  ARGOCD_PASSWORD: ${{ secrets.ARGOCD_PASSWORD }}
+  ARGOCD_SERVER: 34.30.15.58
+  ARGOCD_USERNAME: admin
+  ARGOCD_PASSWORD: cfPflMV-vAEZbZ01
   ARGOCD_APP_NAME: reactapp-gcp-gke-githubactions-cicd
   ARGOCD_NAMESPACE: argocd
 
@@ -93,14 +93,14 @@ jobs:
           curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
           chmod +x /usr/local/bin/argocd
 
-      # - name: Login to Argo CD
-      #   run: |
-      #     argocd login ${ARGOCD_SERVER} --username ${ARGOCD_USERNAME} --password ${ARGOCD_PASSWORD} --insecure --grpc-web
+      - name: Login to Argo CD
+        run: |
+          argocd login ${ARGOCD_SERVER} --username ${ARGOCD_USERNAME} --password ${ARGOCD_PASSWORD} --insecure --grpc-web
 
-      # - name: Sync Argo CD application
-      #   run: |
-      #     argocd app sync ${ARGOCD_APP_NAME} --grpc-web
+      - name: Sync Argo CD application
+        run: |
+          argocd app sync ${ARGOCD_APP_NAME} --grpc-web
 
-      # - name: Wait for Argo CD application to become healthy
-      #   run: |
-      #     argocd app wait ${ARGOCD_APP_NAME} --health --timeout 180s --grpc-web
+      - name: Wait for Argo CD application to become healthy
+        run: |
+          argocd app wait ${ARGOCD_APP_NAME} --health --timeout 180s --grpc-web
