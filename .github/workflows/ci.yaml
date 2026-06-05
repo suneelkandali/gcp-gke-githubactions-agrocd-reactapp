@@ -11,7 +11,7 @@ env:
   GCP_REGION: us-central1
   GCP_ZONE: us-central1-a
   CLUSTER_NAME: gcp-gke-githubactions-argocd-cluster
-  IMAGE_REPOSITORY: react-repo
+  IMAGE_REPOSITORY: githubactions-argocd-poc-repo
   IMAGE_NAME: gcp-gke-githubactions-agrocd-reactapp
   DEPLOYMENT_MANIFEST: k8s/deployment.yaml
   ARGOCD_APP_NAME: reactapp-gcp-gke-githubactions-cicd

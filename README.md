@@ -183,6 +183,12 @@ container.googleapis.com: This is the internal name for the Google Kubernetes En
 
 artifactregistry.googleapis.com: This is the internal name for Artifact Registry. Enabling this allows you to create secure, private repositories to store and manage your Docker container images, Maven/npm packages, or Helm charts.
 
+
+gcloud artifacts repositories create githubactions-argocd-poc-repo \
+    --repository-format=docker \
+    --location=us-central1 \
+    --description="Docker repository for CI/CD with GitHub Actions and ArgoCD"
+
 ## 2. Create your React application and push to GitHub
 
 If you do not already have a React app in this repository, create one with Vite:
